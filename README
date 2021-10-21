@@ -1,0 +1,6 @@
+A simple web scrapper that pulls down the ingredients list for recipes using curl.
+
+Tested with :
+	bbcgoodfood.com
+	taste.com.au
+	bestrecipies.com.au
