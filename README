@@ -20,6 +20,7 @@ Dependencies:
 
 Installation:
 	-	$ make
+	-	add your dev token on the python script (temporary requirement)
 Voila. You can now run it
 
 Tested with : (I'm assuming that they all work the same so they'll probably all work)
