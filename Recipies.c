@@ -26,7 +26,6 @@ int main(int argc, char **argv)
   struct MemoryStruct chunk;
   chunk.memory = malloc(1);  /* will be grown as needed by the realloc at the WriteMemoryCallback function*/
   chunk.size = 0;    /* no data at this point */
-
   curl = curl_easy_init();
   if(curl) {
     curl_easy_setopt(curl, CURLOPT_URL, argv[argc -1]); // Sets the url to the last given argument
@@ -48,7 +47,7 @@ int main(int argc, char **argv)
     printf("%lu bytes retrieved\n", (unsigned long)chunk.size);
     char * recipe_Title = find_Title(chunk.memory);
     char * ingredients_List = find_Ingredients(chunk.memory);
-    fprintf(out,"<a href=\"%s\" rev=\"en_rl_none\" class=\"en-link\"><u>%s</u></a>\n",argv[argc -1], recipe_Title);
+    fprintf(out,"<div class=\"para\"><span style=\"font-size: 20px;\" data-fontsize=\"true\"><a href=\"%s\" rev=\"en_rl_none\" class=\"en-link\"><u>%s</u></a></span></div>\n",argv[argc -1], recipe_Title);
     fprintf(out,"%s",ingredients_List);
 
     /* always cleanup */
@@ -94,6 +93,7 @@ char * find_Ingredients(char * response)
   char * response_Ingredients_end = response_Ingredients;
   char *ingredients_list = malloc(1);
   int ingredients_list_size = 0;
+  char * html_div = malloc(256);
 
   if (response_Ingredients != NULL){
     printf("Found ingredients!\n");
@@ -106,7 +106,7 @@ char * find_Ingredients(char * response)
     }
 
     int len = response_Ingredients_end - response_Ingredients;
-    char *response_Ingredients_copy = (char*)malloc(sizeof(char)*(len+1));
+    char *response_Ingredients_copy = (char*)malloc(sizeof(char)*(len + 1));
     strncpy(response_Ingredients_copy,response_Ingredients,len);
     response_Ingredients_copy[len] = '\0'; 
     
@@ -115,24 +115,28 @@ char * find_Ingredients(char * response)
 
     /* get the first token */
     token = strtok(response_Ingredients_copy, s);
-    int token_size = strlen(token);
+    int token_size = strlen(token) + 103;
     ingredients_list_size += token_size;
     ingredients_list =  realloc(ingredients_list,ingredients_list_size);     
     ingredients_list[0] = '\0';
    
     /* walk through other tokens */
     while( token != NULL ) {
-      ingredients_list_size += strlen(token) + 2;
-      ingredients_list =  realloc(ingredients_list,ingredients_list_size);     
+      ingredients_list_size += strlen(token) + 105;
+      ingredients_list = realloc(ingredients_list,ingredients_list_size);     
 
       if (!strcmp(token,","))
         strcat(ingredients_list,"\n");
       else
-      strcat(ingredients_list, token);
+      {
+        sprintf(html_div,"<div class=\"para\"><input type=\"checkbox\" checked=\"false\" class=\"en-todo\" contenteditable=\"false\">%s</div>", token);
+        strcat(ingredients_list,html_div);
+      }
 
       token = strtok(NULL, s);
     }
     strcat(ingredients_list,"\n");
+    free(response_Ingredients_copy);
     return ingredients_list;
   }
   printf("Couldn't find Ingredients\n");
