@@ -75,11 +75,12 @@ result_list = note_store.findNotesMetadata(auth_token , filter, offset, max_note
 print("Finishing Search\n")
 
 print("Searched using the words:", result_list.searchedWords , " and found " ,result_list.totalNotes, " Notes\n")
-# print(result_list.notes)
 found_Shopping_List = False
 for note in result_list.notes: # Looks through all of the notes and finds the one name Shopping List. If it days it turns a boolean to True.
     print ("  * Title: " + note.title) # Otherwise it stays False.
-    if note.title == "Shopping List" : found_Shopping_List = True 
+    if note.title == "Shopping List" :
+        found_Shopping_List = True
+        Shopping_List_guid= note.guid
 
 if  found_Shopping_List != True: # If it didn't find it, then it creates it
     note = Types.Note()

@@ -44,14 +44,16 @@ int main(int argc, char **argv)
     }
     
     printf("%lu bytes retrieved\n", (unsigned long)chunk.size);
-    // printf("%s\n",find_Ingredients(chunk.memory));
-    fprintf(out,"%s",find_Ingredients(chunk.memory));
+    char * ingredients_list = find_Ingredients(chunk.memory);
+    // fprintf(out,"<a href=\"%s\" rev=\"en_rl_none\" class=\"en-link\"><u>%s</u></a>",argv[argc -1],/*Title of the dish*/);
+    fprintf(out,"%s",ingredients_list);
 
     /* always cleanup */
     curl_easy_cleanup(curl);
     curl_global_cleanup();
     fclose(out);
     free(chunk.memory);
+    free(ingredients_list);
   }
   return 0;
 }
@@ -90,7 +92,56 @@ char * find_Ingredients(char * response)
   int ingredients_list_size = 0;
 
   if (recipe_Ingredient != NULL){
-    printf("Found it\n");
+    printf("Found it!\n");
+    recipe_Ingredient += size + 3;
+    while (1)
+    {
+      recipe_Ingredient_end++;
+      if(*recipe_Ingredient_end == ']')
+        break;
+    }
+   *recipe_Ingredient_end = '\0'; 
+    
+    const char s[2] = "\"";
+    char *token;
+
+    /* get the first token */
+    token = strtok(recipe_Ingredient, s);
+    int token_size = strlen(token);
+    ingredients_list_size += token_size;
+    ingredients_list =  realloc(ingredients_list,ingredients_list_size);     
+    ingredients_list[0] = '\0';
+   
+    /* walk through other tokens */
+    while( token != NULL ) {
+      ingredients_list_size += strlen(token) + 2;
+      ingredients_list =  realloc(ingredients_list,ingredients_list_size);     
+
+      if (!strcmp(token,","))
+        strcat(ingredients_list,"\n");
+      else
+      strcat(ingredients_list, token);
+
+      token = strtok(NULL, s);
+    }
+  }
+  
+  strcat(ingredients_list,"\n");
+  return ingredients_list;
+}
+
+
+char * find_Title(char * response)
+{ 
+  char string_to_search_for[] =  "<title>";
+  int size = strlen(string_to_search_for);
+  char * recipe_Ingredient = strstr(response,string_to_search_for);
+  char * recipe_Ingredient_end = recipe_Ingredient;
+  char *ingredients_list = malloc(1);
+  int ingredients_list_size = 0;
+
+  if (recipe_Ingredient != NULL){
+    printf("Found it!\n");
     recipe_Ingredient += size + 3;
     while (1)
     {
@@ -115,10 +166,9 @@ char * find_Ingredients(char * response)
       ingredients_list_size += strlen(token) + 2;
       ingredients_list =  realloc(ingredients_list,ingredients_list_size);     
       
-      if (strcmp(token,","))
-        strcat(ingredients_list,"\n");
       strcat(ingredients_list, token);
-                
+      if (strcmp(token,","))
+        strcat(ingredients_list,"\n");         
       token = strtok(NULL, s);
     }
   }
