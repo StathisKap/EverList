@@ -8,7 +8,6 @@ import os
 import evernote.edam.type.ttypes as Types
 import evernote.edam.userstore.constants as UserStoreConstants
 from evernote.api.client import EvernoteClient
-from evernote.edam.type.ttypes import NoteSortOrder
 from evernote.edam.notestore.ttypes import NoteFilter, NotesMetadataResultSpec
 from secrets import dev_token # This is my developer token in a differnt file named secrets
 
@@ -72,15 +71,18 @@ result_spec = NotesMetadataResultSpec()
 result_spec.includeTitle = True
 print("Starting Search")
 result_list = note_store.findNotesMetadata(auth_token , filter, offset, max_notes, result_spec) # Searches for all notes in the account
-print("Finishing Search\n")
+print("Finished Search\n")
 
 print("Searched using the words:", result_list.searchedWords , " and found " ,result_list.totalNotes, " Notes\n")
 found_Shopping_List = False
-for note in result_list.notes: # Looks through all of the notes and finds the one name Shopping List. If it days it turns a boolean to True.
+for note in result_list.notes: # Looks through all of the notes and finds the one name Shopping List. If it exists it turns a boolean to True.
     print ("  * Title: " + note.title) # Otherwise it stays False.
-    if note.title == "Shopping List" :
+    if note.title == "Shopping List":
         found_Shopping_List = True
-        Shopping_List_guid= note.guid
+        Shopping_List_note_metadata = note
+        # NoteResults = NoteResultSpec()
+        # NoteResults.includeContent = True
+        # Shopping_List_note = note_store.getNoteWithResultSpec(auth_token,Shopping_List_note_metadata.guid,NoteResults)
 
 if  found_Shopping_List != True: # If it didn't find it, then it creates it
     note = Types.Note()
@@ -92,7 +94,7 @@ if  found_Shopping_List != True: # If it didn't find it, then it creates it
     note.content = '<?xml version="1.0" encoding="UTF-8"?>'
     note.content += '<!DOCTYPE en-note SYSTEM ' \
                     '"http://xml.evernote.com/pub/enml2.dtd">'
-    note.content += '<en-note>Here is the Evernote logo:<br/>'
+    note.content += '<en-note>Here is your new note<br/>'
     note.content += '</en-note>'
 
     # Finally, send the new note to Evernote using the createNote method
@@ -101,4 +103,15 @@ if  found_Shopping_List != True: # If it didn't find it, then it creates it
     print("\nSuccessfully created the 'Shopping List' note with GUID: ", created_note.guid)
 
 elif  found_Shopping_List == True: # To be continued. Will pass the recipe ingredients from the C program to this and it will pass it along
-    print("\n'Shopping List' is already there")
+    print("\n'Shopping List' is already there\n")
+    current_content = note_store.getNoteContent(auth_token,Shopping_List_note_metadata.guid)
+    print(current_content)
+    end_of_content = current_content.find('</en-note>')
+    if end_of_content != -1:
+        current_content = current_content[:end_of_content] + '<br></br>' + '<div>1\/2 cup (120g) Coles Sour Cream</div>' + current_content[end_of_content:]
+        Updated_Note = Types.Note()
+        Updated_Note.title = Shopping_List_note_metadata.title
+        Updated_Note.guid = Shopping_List_note_metadata.guid
+        Updated_Note.content = current_content
+        note_store.updateNote(auth_token,Updated_Note)
+        print("\n******Updated******\n")
