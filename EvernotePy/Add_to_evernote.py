@@ -13,10 +13,16 @@ from evernote.edam.notestore.ttypes import NoteFilter, NotesMetadataResultSpec
 from secrets import dev_token # This is my developer token in a differnt file named secrets
 
 # Real applications authenticate with Evernote using OAuth, but for the
-# purpose of exploring the API, you can get a developer token that allows
+# purpose of exploring the API, you can stathiskap75get a developer token that allows
 # you to access your own Evernote account. To get a developer token, visit
 # https://sandbox.evernote.com/api/DeveloperToken.action
 auth_token = dev_token
+
+############### O AUTH ####################
+
+
+############### END #######################
+
 
 if auth_token == "your developer token":
     print("Please fill in your developer token")

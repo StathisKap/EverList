@@ -31,46 +31,45 @@ int main(int argc, char **argv)
   char * formated_Title = malloc(150);
   char * ingredients_List;
 
-  if(curl) {
-    curl_easy_setopt(curl, CURLOPT_URL, argv[argc -1]); // Sets the url to the last given argument
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); // Follows Redirects
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,WriteMemoryCallback); // Sets the callback function to a function which always increases the memory allocated to our buffer
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA,(void*) &chunk); // sets the buffer to which everything is returned to, equal to &chunk instead of stdout
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0"); // Gives our request a user agent (some servers prefer it)
+ if(curl) {
+   curl_easy_setopt(curl, CURLOPT_URL, argv[argc -1]); // Sets the url to the last given argument
+   curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); // Follows Redirects
+   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,WriteMemoryCallback); // Sets the callback function to a function which always increases the memory allocated to our buffer
+   curl_easy_setopt(curl, CURLOPT_WRITEDATA,(void*) &chunk); // sets the buffer to which everything is returned to, equal to &chunk instead of stdout
+   curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0"); // Gives our request a user agent (some servers prefer it)
 
-    /* Perform the request, res will get the return code */
-    res = curl_easy_perform(curl);
+   /* Perform the request, res will get the return code */
+   res = curl_easy_perform(curl);
 
-    /* Check for errors */
-    if(res != CURLE_OK){
-      fprintf(stderr, "curl_easy_perform() failed: %s\n",
-      curl_easy_strerror(res));
-      return 1;
-    }
-    
-    printf("%lu bytes retrieved\n", (unsigned long)chunk.size);
-    char * recipe_Title = find_Title(chunk.memory);
-    ingredients_List = find_Ingredients(chunk.memory);
-    // fprintf(out,"<div class=\"para\"><span style=\"font-size: 20px;\" data-fontsize=\"true\"><a href=\"%s\" rev=\"en_rl_none\" class=\"en-link\"><u>%s</u></a></span></div>\n",argv[argc -1], recipe_Title);
-    // sprintf(formated_Title,"<div class=\"para\"><span style=\"font-size: 20px;\" data-fontsize=\"true\"><a href=\"%s\" rev=\"en_rl_none\" class=\"en-link\"><u>%s</u></a></span></div>\n",argv[argc -1], recipe_Title);
-    sprintf(formated_Title,"<div><span style=\"font-size: 20px; data-fontsize=true\"><a href=\"%s\" rev=\"en_rl_none class=en-link\"><u>%s</u></a></span></div>\n",argv[argc -1], recipe_Title);
-    // fprintf(out,"%s",ingredients_List);
-    // printf("%s",ingredients_List);
+   /* Check for errors */
+   if(res != CURLE_OK){
+     fprintf(stderr, "curl_easy_perform() failed: %s\n",
+     curl_easy_strerror(res));
+     return 1;
+   }
 
-    /* always cleanup */
-    // curl_easy_cleanup(curl);
-    // curl_global_cleanup();
-    // fclose(out);
-    // free(chunk.memory);
-    // free(ingredients_List);
-    // free(recipe_Title);
-  }
-  printf("\n");
+   printf("%lu bytes retrieved\n", (unsigned long)chunk.size);
+   char * recipe_Title = find_Title(chunk.memory);
+   ingredients_List = find_Ingredients(chunk.memory);
+   // fprintf(out,"<div class=\"para\"><span style=\"font-size: 20px;\" data-fontsize=\"true\"><a href=\"%s\" rev=\"en_rl_none\" class=\"en-link\"><u>%s</u></a></span></div>\n",argv[argc -1], recipe_Title);
+   // sprintf(formated_Title,"<div class=\"para\"><span style=\"font-size: 20px;\" data-fontsize=\"true\"><a href=\"%s\" rev=\"en_rl_none\" class=\"en-link\"><u>%s</u></a></span></div>\n",argv[argc -1], recipe_Title);
+   sprintf(formated_Title,"<div><span style=\"font-size: 20px; data-fontsize=true\"><a href=\"%s\" rev=\"en_rl_none class=en-link\"><u>%s</u></a></span></div>\n",argv[argc -1], recipe_Title);
+   // fprintf(out,"%s",ingredients_List);
+   // printf("%s",ingredients_List);
+
+   /* always cleanup */
+   curl_easy_cleanup(curl);
+   curl_global_cleanup();
+   // fclose(out);
+   free(chunk.memory);
+   free(recipe_Title);
+ }
+ printf("\n");
 
   char * args[] = {"/usr/bin/python3","./EvernotePy/Add_to_evernote.py",formated_Title,ingredients_List, NULL};
-  execv("/usr/bin/python3",args);
-  // execlp("/usr/bin/python3","/usr/bin/python3","./EvernotePy/Add_to_evernote.py",formated_Title,ingredients_List, NULL);
-
+  // execv("/usr/bin/python3",args);
+  free(ingredients_List);
+  free(formated_Title);
   return 0;
 }
 
@@ -143,7 +142,7 @@ char * find_Ingredients(char * response)
       else
       {
         // sprintf(html_div,"<div class=\"para\"><input type=\"checkbox\" checked=\"false\" class=\"en-todo\" contenteditable=\"false\">%s</div>", token);
-        sprintf(html_div,"<div><en-todo></en-todo>%s</div>", token);
+        sprintf(html_div,"<div><en-todo></en-todo><span style=\"font-size: 16px;\">%s</span></div>", token);
         strcat(ingredients_list,html_div);
       }
 
@@ -151,6 +150,7 @@ char * find_Ingredients(char * response)
     }
     strcat(ingredients_list,"\n");
     free(response_Ingredients_copy);
+    free(html_div);
     return ingredients_list;
   }
   printf("Couldn't find Ingredients\n");
