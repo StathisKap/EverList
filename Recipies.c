@@ -28,7 +28,7 @@ int main(int argc, char **argv)
   chunk.memory = malloc(1);  /* will be grown as needed by the realloc at the WriteMemoryCallback function*/
   chunk.size = 0;    /* no data at this point */
   curl = curl_easy_init();
-  char * formated_Title = malloc(150);
+  char * formated_Title;
   char * ingredients_List;
 
  if(curl) {
@@ -48,32 +48,31 @@ int main(int argc, char **argv)
      return 1;
    }
 
-   printf("%lu bytes retrieved\n", (unsigned long)chunk.size);
-   char * recipe_Title = find_Title(chunk.memory);
-   ingredients_List = find_Ingredients(chunk.memory);
-   // fprintf(out,"<div class=\"para\"><span style=\"font-size: 20px;\" data-fontsize=\"true\"><a href=\"%s\" rev=\"en_rl_none\" class=\"en-link\"><u>%s</u></a></span></div>\n",argv[argc -1], recipe_Title);
-   // sprintf(formated_Title,"<div class=\"para\"><span style=\"font-size: 20px;\" data-fontsize=\"true\"><a href=\"%s\" rev=\"en_rl_none\" class=\"en-link\"><u>%s</u></a></span></div>\n",argv[argc -1], recipe_Title);
-   sprintf(formated_Title,"<div><span style=\"font-size: 20px; data-fontsize=true\"><a href=\"%s\" rev=\"en_rl_none class=en-link\"><u>%s</u></a></span></div>\n",argv[argc -1], recipe_Title);
-   // fprintf(out,"%s",ingredients_List);
-   // printf("%s",ingredients_List);
+    printf("%lu bytes retrieved\n", (unsigned long)chunk.size);
+    char * recipe_Title = find_Title(chunk.memory);
+    ingredients_List = find_Ingredients(chunk.memory);
+    formated_Title = malloc(strlen(recipe_Title) + strlen(argv[argc -1]) + 128);
+    // fprintf(out,"<div class=\"para\"><span style=\"font-size: 20px;\" data-fontsize=\"true\"><a href=\"%s\" rev=\"en_rl_none\" class=\"en-link\"><u>%s</u></a></span></div>\n",argv[argc -1], recipe_Title);
+    // sprintf(formated_Title,"<div class=\"para\"><span style=\"font-size: 20px;\" data-fontsize=\"true\"><a href=\"%s\" rev=\"en_rl_none\" class=\"en-link\"><u>%s</u></a></span></div>\n",argv[argc -1], recipe_Title);
+    sprintf(formated_Title,"<div><span style=\"font-size: 20px; data-fontsize=true\"><a href=\"%s\" rev=\"en_rl_none class=en-link\"><u>%s</u></a></span></div>\n",argv[argc -1], recipe_Title);
+    // fprintf(out,"%s",ingredients_List);
+    // printf("%s",ingredients_List);
 
-   /* always cleanup */
-   curl_easy_cleanup(curl);
-   curl_global_cleanup();
-   // fclose(out);
-   free(chunk.memory);
-   free(recipe_Title);
+    /* always cleanup */
+    curl_easy_cleanup(curl);
+     curl_global_cleanup();
+    //  fclose(out);
+     free(chunk.memory);
+     free(recipe_Title);
  }
  printf("\n");
 
   char * args[] = {"/usr/bin/python3","./EvernotePy/Add_to_evernote.py",formated_Title,ingredients_List, NULL};
-  // execv("/usr/bin/python3",args);
-  free(ingredients_List);
-  free(formated_Title);
+  execv("/usr/bin/python3",args);
+  // free(ingredients_List);
+  // free(formated_Title);
   return 0;
 }
-
-
 
 static size_t
 WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
@@ -134,7 +133,7 @@ char * find_Ingredients(char * response)
    
     /* walk through other tokens */
     while( token != NULL ) {
-      ingredients_list_size += strlen(token) + 105;
+      ingredients_list_size += strlen(token) + 72;
       ingredients_list = realloc(ingredients_list,ingredients_list_size);     
 
       if (!strcmp(token,","))
