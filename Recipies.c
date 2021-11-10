@@ -5,9 +5,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <ctype.h>
 #include <curl/curl.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 struct MemoryStruct {
   char *memory;
@@ -23,16 +25,58 @@ int main(int argc, char **argv)
 {
   CURL *curl;
   CURLcode res;
-  // FILE * out = fopen("Recipe.txt","w");
   struct MemoryStruct chunk;
   chunk.memory = malloc(1);  /* will be grown as needed by the realloc at the WriteMemoryCallback function*/
   chunk.size = 0;    /* no data at this point */
   curl = curl_easy_init();
   char * formated_Title;
   char * ingredients_List;
+  char * url;
+  char opt;
+  bool Uses_file = false;
+  pid_t parent_pid;
+  FILE * in;
+
+ /* Catch Arguments to determine whether a single url will be used or a file with urls */ 
+  while((opt = getopt(argc, argv,":f:")) != -1)
+  {
+    switch (opt)
+    {
+    case 'f':
+      Uses_file = true;
+      in = fopen(optarg,"r");
+      break;
+    case '?': 
+      printf("Usage: ./EverList [-f Text file with all the URLS, separated by new lines | single url]\n");
+      exit(2);
+      break;
+    }    
+  }
+/* if the option to use a file was chosen then it reads a line, creates a child process and waits for the child to finish */
+  if (Uses_file == true) 
+  {
+    int child_index = 1;
+    url = malloc(255);
+    while (fgets(url,255,in) != NULL)
+    {
+        printf("Child %d:\n",child_index++);
+        url[strlen(url)-1] = '\0';
+        if (fork() == 0)
+          break;
+       else
+          parent_pid = wait(NULL);
+
+    }
+  }
+  else
+  {
+    url = malloc(sizeof(argv[argc -1])+1);
+    strcpy(url,argv[argc -1]);
+  }
+
 
  if(curl) {
-   curl_easy_setopt(curl, CURLOPT_URL, argv[argc -1]); // Sets the url to the last given argument
+   curl_easy_setopt(curl, CURLOPT_URL, url); // Sets the url to the last given argument
    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); // Follows Redirects
    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,WriteMemoryCallback); // Sets the callback function to a function which always increases the memory allocated to our buffer
    curl_easy_setopt(curl, CURLOPT_WRITEDATA,(void*) &chunk); // sets the buffer to which everything is returned to, equal to &chunk instead of stdout
@@ -47,21 +91,16 @@ int main(int argc, char **argv)
      curl_easy_strerror(res));
      return 1;
    }
-
-    printf("%lu bytes retrieved\n", (unsigned long)chunk.size);
+    printf("%lu bytes retrieved\n",(unsigned long)chunk.size);
     char * recipe_Title = find_Title(chunk.memory);
     ingredients_List = find_Ingredients(chunk.memory);
-    formated_Title = malloc(strlen(recipe_Title) + strlen(argv[argc -1]) + 128);
-    // fprintf(out,"<div class=\"para\"><span style=\"font-size: 20px;\" data-fontsize=\"true\"><a href=\"%s\" rev=\"en_rl_none\" class=\"en-link\"><u>%s</u></a></span></div>\n",argv[argc -1], recipe_Title);
+    formated_Title = malloc(strlen(recipe_Title) + strlen(url) + 128);
     // sprintf(formated_Title,"<div class=\"para\"><span style=\"font-size: 20px;\" data-fontsize=\"true\"><a href=\"%s\" rev=\"en_rl_none\" class=\"en-link\"><u>%s</u></a></span></div>\n",argv[argc -1], recipe_Title);
-    sprintf(formated_Title,"<div><span style=\"font-size: 20px; data-fontsize=true\"><a href=\"%s\" rev=\"en_rl_none class=en-link\"><u>%s</u></a></span></div>\n",argv[argc -1], recipe_Title);
-    // fprintf(out,"%s",ingredients_List);
-    // printf("%s",ingredients_List);
+    sprintf(formated_Title,"<div><span style=\"font-size: 20px; data-fontsize=true\"><a href=\"%s\" rev=\"en_rl_none class=en-link\"><u>%s</u></a></span></div>\n",url, recipe_Title);
 
     /* always cleanup */
     curl_easy_cleanup(curl);
      curl_global_cleanup();
-    //  fclose(out);
      free(chunk.memory);
      free(recipe_Title);
  }
@@ -69,8 +108,8 @@ int main(int argc, char **argv)
 
   char * args[] = {"/usr/bin/python3","./EvernotePy/Add_to_evernote.py",formated_Title,ingredients_List, NULL};
   execv("/usr/bin/python3",args);
-  // free(ingredients_List);
-  // free(formated_Title);
+  free(ingredients_List);
+  free(formated_Title);
   return 0;
 }
 

@@ -84,20 +84,21 @@ if  found_Shopping_List != True: # If it didn't find it, then it creates it
     created_note = note_store.createNote(note)
 
     print("Successfully created the 'Shopping List' note with GUID: ", created_note.guid)
+    Shopping_List_note_metadata = created_note
 
 elif  found_Shopping_List == True: # To be continued. Will pass the recipe ingredients from the C program to this and it will pass it along
     print("'Shopping List' is already there")
-    current_content = note_store.getNoteContent(auth_token,Shopping_List_note_metadata.guid)
-    print(current_content)
-    end_of_content = current_content.find('</en-note>')
-    if end_of_content != -1:
-        if len(sys.argv) == 3:
-            current_content = current_content[:end_of_content] + '<br></br>' + str(sys.argv[1]) + str(sys.argv[2]) + current_content[end_of_content:]
-        else:
-            current_content = current_content[:end_of_content] + '<br></br>' + '<div>Test Sentence</div>' + current_content[end_of_content:]
-        Updated_Note = Types.Note()
-        Updated_Note.title = Shopping_List_note_metadata.title
-        Updated_Note.guid = Shopping_List_note_metadata.guid
-        Updated_Note.content = current_content
-        note_store.updateNote(auth_token,Updated_Note)
-        print("\n******Updated******\n")
+current_content = note_store.getNoteContent(auth_token,Shopping_List_note_metadata.guid)
+# print(current_content)
+end_of_content = current_content.find('</en-note>')
+if end_of_content != -1:
+    if len(sys.argv) == 3:
+        current_content = current_content[:end_of_content] + '<br></br>' + str(sys.argv[1]) + str(sys.argv[2]) + current_content[end_of_content:]
+    else:
+        current_content = current_content[:end_of_content] + '<br></br>' + '<div>Test Sentence</div>' + current_content[end_of_content:]
+    Updated_Note = Types.Note()
+    Updated_Note.title = Shopping_List_note_metadata.title
+    Updated_Note.guid = Shopping_List_note_metadata.guid
+    Updated_Note.content = current_content
+    note_store.updateNote(auth_token,Updated_Note)
+    print("\n******Updated******\n")
