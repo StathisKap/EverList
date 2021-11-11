@@ -1,4 +1,5 @@
 import time
+import os
 import base64
 import random
 import uuid
@@ -10,6 +11,8 @@ import hashlib
 import binascii
 import requests
 import webbrowser 
+import urllib.parse as urlparse
+from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 def escape(s):
     return urllib.parse.quote(s, safe='~')
@@ -35,7 +38,7 @@ oauth_parameters={
 'oauth_version': "1.0",
 'oauth_nonce': get_nonce(),
 'oauth_consumer_key': 'stathiskap75',
-'oauth_callback':'https://localhost:8000'
+'oauth_callback':'http:127.0.0.1:8000'
 }
 
 string_parameters=stringify_parameters(oauth_parameters)
@@ -50,8 +53,12 @@ res = requests.get('https://sandbox.evernote.com/oauth?' + stringify_parameters(
 
 print(res.status_code)
 print(res.text)
+print()
 auth_token = res.text[:res.text.find("&")]
 webbrowser.open("https://sandbox.evernote.com/OAuth.action" + "?" + auth_token)
+
+httpd = HTTPServer(('127.0.0.1', 8000), SimpleHTTPRequestHandler)
+httpd.handle_request()
 
 # https://sandbox.evernote.com/oauth?
 #   oauth_consumer_key=internal-dev -- DONE in oauth_parameters
