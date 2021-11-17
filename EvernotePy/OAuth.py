@@ -5,14 +5,18 @@ import random
 import uuid
 import urllib
 import collections
-import urllib.parse
 import hmac
 import hashlib
 import binascii
 import requests
 import webbrowser 
-import urllib.parse as urlparse
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import HTTPServer, SimpleHTTPRequestHandler, BaseHTTPRequestHandler
+import socketserver
+import urllib.parse
+from urllib.parse import parse_qs
+import cgi
+from secrets import dev_secret # This is my developer token in a differnt file named secrets
+
 
 def escape(s):
     return urllib.parse.quote(s, safe='~')
@@ -42,30 +46,81 @@ oauth_parameters={
 }
 
 string_parameters=stringify_parameters(oauth_parameters)
-secret='b6c95bdf98d5953f'
+secret = dev_secret
 
 key = (escape(secret)+'&').encode()
 message = ('GET&' + escape('https://sandbox.evernote.com/oauth') + '&' + escape(string_parameters)).encode()
+print()
+print(message)
+print()
 signature = hmac.new(key, message, hashlib.sha1).digest()
 oauth_parameters['oauth_signature'] = base64.b64encode(signature).decode()
+print(signature)
+print()
+for k,v in oauth_parameters.items():
+    print(k,v)
+print()
 
 res = requests.get('https://sandbox.evernote.com/oauth?' + stringify_parameters(oauth_parameters))
+oauth_parametersclone = oauth_parameters
 
 print(res.status_code)
 print(res.text)
-print()
 auth_token = res.text[:res.text.find("&")]
 webbrowser.open("https://sandbox.evernote.com/OAuth.action" + "?" + auth_token)
+oauth_parameters['oauth_token'] = auth_token[auth_token.find('=') + 1:] 
 
-httpd = HTTPServer(('127.0.0.1', 8000), SimpleHTTPRequestHandler)
+class MyRequestHandler(BaseHTTPRequestHandler):
+    request = ""
+    def do_GET(self):
+        # print(self.path)
+        MyRequestHandler.request = self.path
+    def do_POST(self):
+        self.send_response(200)
+        content_length = int(self.headers.get('Content-Length'))
+        print(self.rfile.read(content_length))
+
+httpd = HTTPServer(('127.0.0.1', 8000), MyRequestHandler)
 httpd.handle_request()
+if not MyRequestHandler.request:
+    exit(1)
+MRH_Request = MyRequestHandler.request
+oauth_verifier = MyRequestHandler.request[MRH_Request.find("oauth_verifier"):MRH_Request.find("&sandbox")]
+verifier = oauth_verifier[oauth_verifier.find("=")+1:]
+oauth_parameters['oauth_verifier'] = verifier
+# oauth_parameters['oauth_signature'] = base64.b64encode(signature).decode()
+oauth_parameters.pop('oauth_callback')
+oauth_parameters.pop('oauth_signature')
+oauth_parameters['oauth_timestamp'] = str(int(time.time()))
+
+# oauth_parameters.pop('oauth_signature')
+# message = ('GET&' + escape('https://sandbox.evernote.com/oauth') + '&' + escape(string_parameters)).encode()
+# signature = hmac.new(key, message, hashlib.sha1).digest()
+# oauth_parameters['oauth_signature'] = base64.b64encode(signature).decode()
+
+string_parameters=stringify_parameters(oauth_parameters)
+message = ('GET&' + escape('https://sandbox.evernote.com/oauth') + '&' + escape(string_parameters)).encode()
+signature = hmac.new(key, message, hashlib.sha1).digest()
+oauth_parameters['oauth_signature'] = base64.b64encode(signature).decode()
+print()
+print()
+print('https://sandbox.evernote.com/oauth?' + stringify_parameters(oauth_parameters))
+
+for k,v in oauth_parametersclone.items():
+    print(k,v)
+
+res = requests.get('https://sandbox.evernote.com/oauth?' + stringify_parameters(oauth_parameters))
+print(res.status_code)
+# print(res.text)
+print()
+
 
 # https://sandbox.evernote.com/oauth?
-#   oauth_consumer_key=internal-dev -- DONE in oauth_parameters
-#   &auth_token=internaldev.14CD91FCE1F.687474703A2F2F6C6F63616C686F7374.6E287AD298969B6F8C0B4B1D67BCAB1D -- DONE in auth_token
-#   &oauth_verifier=40793F8BAE15D4E3B6DD5CA8AB4BF62F -- NOT DONE
-#   &oauth_nonce=4078121641140961292 -- DONE in oauth_parameters
-#   &auth_signature=hfA8r3NdMnZbzN0OOmTZIZj6Wkc= -- NOT DONE in oauth_parameters
-#   &oauth_signature_method=HMAC-SHA1 -- DONE in oauth_parameters
 #   &oauth_timestamp=1429572048 -- DONE in oauth_parameters
+#   &oauth_signature_method=HMAC-SHA1 -- DONE in oauth_parameters
 #   &oauth_version=1.0 -- DONE in oauth_parameters
+#   &oauth_nonce=4078121641140961292 -- DONE in oauth_parameters
+#   oauth_consumer_key=internal-dev -- DONE in oauth_parameters
+#   &auth_signature=hfA8r3NdMnZbzN0OOmTZIZj6Wkc= -- DONE in oauth_parameters
+#   &oauth_verifier=40793F8BAE15D4E3B6DD5CA8AB4BF62F -- DONE 
+#   &auth_token=internaldev.14CD91FCE1F.687474703A2F2F6C6F63616C686F7374.6E287AD298969B6F8C0B4B1D67BCAB1D -- DONE in auth_token
