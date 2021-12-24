@@ -1,4 +1,4 @@
 CC = gcc
 CFLAGS = -lcurl
-EverList: Recipies.c
+EverList: Scrapper.c
 	$(CC) -o $@ $< $(CFLAGS)	

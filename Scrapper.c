@@ -17,7 +17,7 @@ struct MemoryStruct {
 };
 
 static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp);
-char * find_Ingredients(char * response); 
+char * find_Ingredients(char * response);
 char * find_Title(char * response);
 
 //******MAIN******//
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
   pid_t parent_pid;
   FILE * in;
 
- /* Catch Arguments to determine whether a single url will be used or a file with urls */ 
+ /* Catch Arguments to determine whether a single url will be used or a file with urls */
   while((opt = getopt(argc, argv,":f:")) != -1)
   {
     switch (opt)
@@ -46,14 +46,14 @@ int main(int argc, char **argv)
       Uses_file = true;
       in = fopen(optarg,"r");
       break;
-    case '?': 
+    case '?':
       printf("Usage: ./EverList [-f Text file with all the URLS, separated by new lines | single url]\n");
       exit(2);
       break;
-    }    
+    }
   }
 /* if the option to use a file was chosen then it reads a line, creates a child process and waits for the child to finish */
-  if (Uses_file == true) 
+  if (Uses_file == true)
   {
     int child_index = 1;
     url = malloc(255);
@@ -118,25 +118,25 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
   size_t realsize = size * nmemb;
   struct MemoryStruct *mem = (struct MemoryStruct *)userp;
- 
+
   char *ptr = realloc(mem->memory, mem->size + realsize + 1);
   if(!ptr) {
     /* out of memory! */
     printf("not enough memory (realloc returned NULL)\n");
     return 0;
   }
- 
+
   mem->memory = ptr;
   memcpy(&(mem->memory[mem->size]), contents, realsize);
   mem->size += realsize;
   mem->memory[mem->size] = 0;
- 
+
   return realsize;
 }
 
 
 char * find_Ingredients(char * response)
-{ 
+{
   char string_to_search_for[] =  "recipeIngredient";
   int size = strlen(string_to_search_for);
   char * response_Ingredients = strstr(response,string_to_search_for);
@@ -158,8 +158,8 @@ char * find_Ingredients(char * response)
     int len = response_Ingredients_end - response_Ingredients;
     char *response_Ingredients_copy = (char*)malloc(sizeof(char)*(len + 1));
     strncpy(response_Ingredients_copy,response_Ingredients,len);
-    response_Ingredients_copy[len] = '\0'; 
-    
+    response_Ingredients_copy[len] = '\0';
+
     const char s[2] = "\"";
     char *token;
 
@@ -167,13 +167,13 @@ char * find_Ingredients(char * response)
     token = strtok(response_Ingredients_copy, s);
     int token_size = strlen(token) + 103;
     ingredients_list_size += token_size;
-    ingredients_list =  realloc(ingredients_list,ingredients_list_size);     
+    ingredients_list =  realloc(ingredients_list,ingredients_list_size);
     ingredients_list[0] = '\0';
-   
+
     /* walk through other tokens */
     while( token != NULL ) {
       ingredients_list_size += strlen(token) + 72;
-      ingredients_list = realloc(ingredients_list,ingredients_list_size);     
+      ingredients_list = realloc(ingredients_list,ingredients_list_size);
 
       if (!strcmp(token,","))
         strcat(ingredients_list,"\n");
@@ -197,12 +197,12 @@ char * find_Ingredients(char * response)
 
 
 char * find_Title(char * response)
-{ 
+{
   char string_to_search_for[] =  "<title>";
   int size = strlen(string_to_search_for);
   char * recipe_Title = strstr(response,string_to_search_for);
-  char * recipe_Title_end = recipe_Title;
-  char * recipe_Title_copy;
+  char * recipe_Title_end = recipe_Title; // As of now, the recipe_Title_end is the same as recipe Title. later it will parse the string
+  char * recipe_Title_copy;               // and find where it ends
 
   if (recipe_Title != NULL){
     printf("Found Title!\n");
@@ -215,8 +215,8 @@ char * find_Title(char * response)
     }
 
   int len = recipe_Title_end - recipe_Title;
-  char * recipe_Title_copy = (char*)malloc(sizeof(char)*(len+1));
-  strncpy(recipe_Title_copy,recipe_Title,len);
+  recipe_Title_copy = (char*)malloc(sizeof(char)*(len+1));
+  strncpy(recipe_Title_copy, recipe_Title, len);
   recipe_Title_copy[len] = '\0';
   return recipe_Title_copy;
   }
