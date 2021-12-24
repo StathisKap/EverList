@@ -2,16 +2,16 @@ EverList:
 
 An Evernote Application. 
 
-By providing the Recipies binary a URL from a recipe from a site such as bbcgoodfood.com, you get back all the ingredients listed alongside the title.
+By providing the EverList binary a URL from a recipe from a site such as bbcgoodfood.com, you get back all the ingredients listed alongside the title.
 They are formatted in ENML, which is XHTML for Evernote. They will then we passed to a python program that will find or create (if needed) a Note called shopping list,
 where it will add the ingredients with a checkbox next to them (so you can easily shop at the grocery store), and the title with a hyperlink (so you can click on it
 and see the instruction)
 
-It's still a work in progress but I will add more customisations and try to make it very good, especially since it's something I'd like to use a lot, and thus other would
+It's still a work in progress but I will add more customisations and try to make it better, especially since it's something I'd like to use a lot, and thus other would
 probably find a lot of use out of it too.
 
 The C program is a simple web scrapper that pulls down the ingredients list for recipes using curl.
-The Evernote Client is written in python and just uses the evernote api
+The Evernote Client is written in python3 and just uses the evernote api
 
 Dependencies:
 	-	make
@@ -23,8 +23,9 @@ Installation:
 	-	add your dev token on the python script (temporary requirement)
 Voila. You can now run it
 
-Tested with : (I'm assuming that they all work the same so they'll probably all work)
+Tested with : 
 	bbcgoodfood.com
 	taste.com.au
 	bestrecipies.com.au
 	dietdoctor.com
+(I'm assuming that all recipe sites work they same so any will probably work)
