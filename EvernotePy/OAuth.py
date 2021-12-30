@@ -9,7 +9,7 @@ import hmac
 import hashlib
 import binascii
 import requests
-import webbrowser 
+import webbrowser
 from http.server import HTTPServer, SimpleHTTPRequestHandler, BaseHTTPRequestHandler
 import socketserver
 import urllib.parse
