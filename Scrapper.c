@@ -52,7 +52,7 @@ int main(int argc, char **argv)
       break;
     }
   }
-/* if the option to use a file was chosen then it reads a line, creates a child process and waits for the child to finish */
+ /* if the option to use a file was chosen then it reads a line, creates a child process and waits for the child to finish */
   if (Uses_file == true)
   {
     int child_index = 1;
@@ -70,7 +70,7 @@ int main(int argc, char **argv)
   }
   else
   {
-    url = malloc(sizeof(argv[argc -1])+1);
+    url = malloc(strlen(argv[argc -1])+1);
     strcpy(url,argv[argc -1]);
   }
 
