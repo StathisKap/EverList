@@ -1,3 +1,4 @@
+#! /opt/homebrew/bin/python3
 # Finds or creates a "Shopping List" note and adds the recipe Ingredients from Recipies.c
 # Created by Stathis Kapnidis
 # Feel free to modify or distribute however you want
@@ -43,7 +44,7 @@ if os.path.isfile('creds.json'):
     print("Found token")
     with open('creds.json') as json_file:
         Oauth_Dict_json = json.load(json_file)
-    auth_token = Oauth_Dict_json['oauth_token']
+        auth_token = Oauth_Dict_json['oauth_token']
     client = EvernoteClient(token= auth_token, sandbox=sandbox,china=china)
 else:
     ##
@@ -81,7 +82,7 @@ else:
             message = " <div><center><span style=\"font-size: 32px;\">Success!</span></center></div>"
             self.protocol_version = "HTTP/1.1"
             self.send_response(200)
-            self.send_header("Content-Length", len(message))
+            self.send_header("Content-Length", message)
             self.end_headers()
             self.wfile.write(bytes(message, "utf8"))
         def do_POST(self):

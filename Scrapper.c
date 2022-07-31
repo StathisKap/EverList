@@ -106,8 +106,8 @@ int main(int argc, char **argv)
  }
  printf("\n");
 
-  char * args[] = {"/usr/bin/python3","./EvernotePy/Add_to_evernote.py",formated_Title,ingredients_List, NULL};
-  execv("/usr/bin/python3",args);
+  char * args[] = {"/opt/homebrew/bin/python3","./EvernotePy/Add_to_evernote.py",formated_Title,ingredients_List, NULL};
+  execv("/opt/homebrew/bin/python3",args);
   free(ingredients_List);
   free(formated_Title);
   return 0;
