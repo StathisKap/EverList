@@ -41,20 +41,22 @@ Key = Full_Access_Consumer_Key
 Secret = Full_Access_Consumer_Secret
 
 if os.path.isfile('creds.json'):
-    print("Found token")
-    with open('creds.json') as json_file:
-        Oauth_Dict_json = json.load(json_file)
-        auth_token = Oauth_Dict_json['oauth_token']
-    client = EvernoteClient(token= auth_token, sandbox=sandbox,china=china)
+     print("Found token")
+     with open('creds.json') as json_file:
+         Oauth_Dict_json = json.load(json_file)
+         auth_token = Oauth_Dict_json['oauth_token']
+         client = EvernoteClient(token= auth_token, sandbox=sandbox,china=china)
 else:
     ##
     # Create an instance of EvernoteClient using your API
     # key (consumer key and consumer secret)
     ##
+    auth_token = dev_secret
     print("Please authorise app")
     client = EvernoteClient(
                 consumer_key = Key,
                 consumer_secret = Secret,
+                token = auth_token,
                 sandbox = sandbox,
                 china = china
             )
@@ -63,55 +65,56 @@ else:
     # redirect the user after the request token has been
     # generated. In this example, localhost is used
     ##
-    request_token = client.get_request_token('http:127.0.0.1:8000')
+#   request_token = client.get_request_token('http://127.0.0.1:8000')
 
     ##
     # Prompt the user to open the request URL in their browser
     ##
-    webbrowser.open(client.get_authorize_url(request_token))
-
-    ##
-    # Create a Server to handle one request and receive the resulting URL
-    # so we can pull it apart
-    ##
-    class MyRequestHandler(BaseHTTPRequestHandler):
-        request = ""
-        def do_GET(self):
-            # print(self.path)
-            MyRequestHandler.request = self.path
-            message = " <div><center><span style=\"font-size: 32px;\">Success!</span></center></div>"
-            self.protocol_version = "HTTP/1.1"
-            self.send_response(200)
-            self.send_header("Content-Length", message)
-            self.end_headers()
-            self.wfile.write(bytes(message, "utf8"))
-        def do_POST(self):
-            self.send_response(200)
-            content_length = int(self.headers.get('Content-Length'))
-            print(self.rfile.read(content_length))
-
-    httpd = HTTPServer(('127.0.0.1', 8000), MyRequestHandler)
-    httpd.handle_request()
-    if not MyRequestHandler.request:
-        print("fail"),exit(1)
-    authurl  = MyRequestHandler.request
-
-    ##
-    # Parse the URL to get the OAuth verifier
-    ##
-    vals = parse_query_string(authurl)
-
-    ##
-    # Use the OAuth verifier and the values from request_token
-    # to built the request for our authentication token, then
-    # ask for it.
-    ##
-    auth_token = client.get_access_token(
-                request_token['oauth_token'],
-                request_token['oauth_token_secret'],
-                vals['oauth_verifier']
-            )
-
+#    print(client.get_authorize_url(request_token))
+#    webbrowser.open(client.get_authorize_url(request_token))
+#
+#    ##
+#    # Create a Server to handle one request and receive the resulting URL
+#    # so we can pull it apart
+#    ##
+#    class MyRequestHandler(BaseHTTPRequestHandler):
+#        request = ""
+#        def do_GET(self):
+#            # print(self.path)
+#            MyRequestHandler.request = self.path
+#            message = " <div><center><span style=\"font-size: 32px;\">Success!</span></center></div>"
+#            self.protocol_version = "HTTP/1.1"
+#            self.send_response(200)
+#            self.send_header("Content-Length", str(len(message)))
+#            self.end_headers()
+#            self.wfile.write(bytes(message, "utf8"))
+#        def do_POST(self):
+#            self.send_response(200)
+#            content_length = int(self.headers.get('Content-Length'))
+#            print(self.rfile.read(content_length))
+#
+#    httpd = HTTPServer(('127.0.0.1', 8000), MyRequestHandler)
+#    httpd.handle_request()
+#    if not MyRequestHandler.request:
+#        print("fail"),exit(1)
+#    authurl  = MyRequestHandler.request
+#
+#    ##
+#    # Parse the URL to get the OAuth verifier
+#    ##
+#    vals = parse_query_string(authurl)
+#
+#    ##
+#    # Use the OAuth verifier and the values from request_token
+#    # to built the request for our authentication token, then
+#    # ask for it.
+#    ##
+#    auth_token = client.get_access_token(
+#                request_token['oauth_token'],
+#                request_token['oauth_token_secret'],
+#                vals['oauth_verifier']
+#            )
+#
     ##
     # Create a new EvernoteClient instance with our auth
     # token.
