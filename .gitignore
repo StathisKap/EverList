@@ -4,4 +4,5 @@ EvernotePy/secrets.py
 .gitignore
 creds.json
 EvernotePy/__pycache__/*
+EvernotePy/__pycache__/
 Evernote_Auth_Key.txt
